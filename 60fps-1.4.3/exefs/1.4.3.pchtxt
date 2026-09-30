@@ -1,0 +1,9 @@
+@nsobid-277178B7DBA1B6D4949A84778D4ABC58B31B34F5
+// Experimental local static 60 FPS port. Not a dynamic FPS fix.
+@flag offset_shift 0x100
+@enabled
+002DB2DC 21008052
+00BE1BF4 21008052
+002DB21C 35008052
+002DB364 35008052
+@stop
