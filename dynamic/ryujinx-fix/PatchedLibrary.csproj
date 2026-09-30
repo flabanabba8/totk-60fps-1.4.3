@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>ARMeilleure</AssemblyName>
+    <Version>1.3.3</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(RyujinxSource)/src/ARMeilleure/**/*.cs"
+             Exclude="$(RyujinxSource)/src/ARMeilleure/obj/**;$(RyujinxSource)/src/ARMeilleure/bin/**" />
+    <Reference Include="Ryujinx.Memory"><HintPath>$(OriginalAssemblies)/Ryujinx.Memory.dll</HintPath></Reference>
+    <Reference Include="Ryujinx.Common"><HintPath>$(OriginalAssemblies)/Ryujinx.Common.dll</HintPath></Reference>
+    <Reference Include="Humanizer"><HintPath>$(OriginalAssemblies)/Humanizer.dll</HintPath></Reference>
+    <Reference Include="Microsoft.IO.RecyclableMemoryStream"><HintPath>$(OriginalAssemblies)/Microsoft.IO.RecyclableMemoryStream.dll</HintPath></Reference>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Ryujinx.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

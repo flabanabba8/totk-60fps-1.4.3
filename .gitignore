@@ -6,3 +6,6 @@ locate.py
 *.nca
 *.keys
 main*
+dist/
+.venv/
+*.dll

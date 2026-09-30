@@ -1,0 +1,108 @@
+--- a/src/ARMeilleure/Translation/Cache/JitCache.cs
++++ b/src/ARMeilleure/Translation/Cache/JitCache.cs
+@@ -26,7 +26,7 @@
+ 
+         private static readonly List<CacheMemoryAllocator> _cacheAllocators = [];
+ 
+-        private static readonly List<CacheEntry> _cacheEntries = [];
++        private static readonly List<List<CacheEntry>> _cacheEntries = [];
+ 
+         private static readonly Lock _lock = new();
+         private static bool _initialized;
+@@ -57,6 +57,7 @@
+ 
+                     _jitRegions.Clear();
+                     _cacheAllocators.Clear();
++                    _cacheEntries.Clear();
+                 }
+                 else
+                 {
+@@ -70,6 +71,7 @@
+ 
+                 CacheMemoryAllocator firstCacheAllocator = new(CacheSize);
+                 _cacheAllocators.Add(firstCacheAllocator);
++                _cacheEntries.Add([]);
+ 
+                 if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
+                 {
+@@ -135,8 +137,9 @@
+             {
+                 Debug.Assert(_initialized);
+ 
+-                foreach (ReservedRegion region in _jitRegions)
+-                {
++                for (int regionIndex = 0; regionIndex < _jitRegions.Count; regionIndex++)
++                {
++                    ReservedRegion region = _jitRegions[regionIndex];
+                     if (pointer.ToInt64() < region.Pointer.ToInt64() ||
+                         pointer.ToInt64() >= (region.Pointer + CacheSize).ToInt64())
+                     {
+@@ -145,10 +148,10 @@
+ 
+                     int funcOffset = (int)(pointer.ToInt64() - region.Pointer.ToInt64());
+ 
+-                    if (TryFind(funcOffset, out CacheEntry entry, out int entryIndex) && entry.Offset == funcOffset)
+-                    {
+-                        _cacheAllocators[_activeRegionIndex].Free(funcOffset, AlignCodeSize(entry.Size));
+-                        _cacheEntries.RemoveAt(entryIndex);
++                    if (TryFind(funcOffset, out CacheEntry entry, out int entryIndex, regionIndex) && entry.Offset == funcOffset)
++                    {
++                        _cacheAllocators[regionIndex].Free(funcOffset, AlignCodeSize(entry.Size));
++                        _cacheEntries[regionIndex].RemoveAt(entryIndex);
+                     }
+ 
+                     return;
+@@ -194,6 +197,7 @@
+             Logger.Warning?.Print(LogClass.Cpu, $"JIT Cache Region {exhaustedRegion} exhausted, creating new Cache Region {_activeRegionIndex} ({((long)(_activeRegionIndex + 1) * CacheSize).Bytes()} Total Allocation).");
+ 
+             _cacheAllocators.Add(new CacheMemoryAllocator(CacheSize));
++            _cacheEntries.Add([]);
+ 
+             int allocOffsetNew = _cacheAllocators[_activeRegionIndex].Allocate(codeSize);
+             if (allocOffsetNew < 0)
+@@ -214,23 +218,25 @@
+         {
+             CacheEntry entry = new(offset, size, unwindInfo);
+ 
+-            int index = _cacheEntries.BinarySearch(entry);
++            List<CacheEntry> entries = _cacheEntries[_activeRegionIndex];
++            int index = entries.BinarySearch(entry);
+ 
+             if (index < 0)
+             {
+                 index = ~index;
+             }
+ 
+-            _cacheEntries.Insert(index, entry);
+-        }
+-
+-        public static bool TryFind(int offset, out CacheEntry entry, out int entryIndex)
+-        {
+-            lock (_lock)
+-            {
+-                foreach (ReservedRegion _ in _jitRegions)
+-                {
+-                    int index = _cacheEntries.BinarySearch(new CacheEntry(offset, 0, default));
++            entries.Insert(index, entry);
++        }
++
++        public static bool TryFind(int offset, out CacheEntry entry, out int entryIndex, int regionIndex = 0)
++        {
++            lock (_lock)
++            {
++                if ((uint)regionIndex < (uint)_cacheEntries.Count)
++                {
++                    List<CacheEntry> entries = _cacheEntries[regionIndex];
++                    int index = entries.BinarySearch(new CacheEntry(offset, 0, default));
+ 
+                     if (index < 0)
+                     {
+@@ -239,7 +245,7 @@
+ 
+                     if (index >= 0)
+                     {
+-                        entry = _cacheEntries[index];
++                        entry = entries[index];
+                         entryIndex = index;
+                         return true;
+                     }
