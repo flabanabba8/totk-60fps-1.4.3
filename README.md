@@ -8,7 +8,7 @@ This is a static frame-rate patch. It does **not** provide dynamic timing compen
 
 ## Download and install
 
-1. Download `60fps-1.4.3.zip` from the [latest release](https://github.com/flabanabba8/totk-60fps-1.4.3/releases/latest).
+1. Download `60fps-1.4.3.zip` from the [release page](https://github.com/flabanabba8/totk-60fps-1.4.3/releases).
 2. Stop the game before changing mods.
 3. Confirm that Ryujinx launches the game with update **1.4.3**. The game title in the emulator window should show that version.
 4. In Ryujinx's game list, right-click **Tears of the Kingdom** and choose **Open Mods Directory**.
@@ -54,6 +54,10 @@ Only the Linux Flatpak installation was tested for this release. Windows and oth
 | Dynamic FPS / other FPS mods | Compatibility not tested; disable them for the baseline test |
 
 A version label alone is not sufficient if an executable has a different build ID. Never rename the build ID or reuse these offsets for another update.
+
+## Does 60 FPS speed up the game?
+
+The intended behavior is normal game speed with smoother motion at 60 FPS. This port has not been validated against a timed 30 FPS baseline, so correct simulation speed is not established. Some timing-sensitive animations or physics could run too fast; below 60 FPS, slowdown is also possible. A frame counter alone cannot establish timing correctness.
 
 ## Resolution and GPU
 
